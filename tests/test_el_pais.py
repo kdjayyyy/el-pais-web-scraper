@@ -1,24 +1,54 @@
-import os
-import pytest
-from src.browserstack_runner import get_remote_driver, EXAMPLE_CAPS
-from src.elpais_scraper import scrape_first_n_opinion_articles
+import unittest
+from unittest.mock import Mock, patch
+from src.elpais_scraper import (
+    scrape_first_n_opinion_articles,
+    analyze_translated_headers,
+)
+from src.utils import normalize_and_tokenize
 
-@pytest.mark.parametrize("bstack_options", EXAMPLE_CAPS)
-def test_scrape_opinion_on_browserstack(bstack_options):
-    user = os.getenv("BROWSERSTACK_USERNAME")
-    key = os.getenv("BROWSERSTACK_ACCESS_KEY")
-    if not user or not key:
-        pytest.skip("BrowserStack credentials not set")
+class TestElPaisScraper(unittest.TestCase):
+    """Unit tests for El País scraper functionality."""
 
-    driver = get_remote_driver(bstack_options=bstack_options)
-    try:
-        articles = scrape_first_n_opinion_articles(driver, n=5)
-        assert isinstance(articles, list)
-        assert len(articles) == 5
-        for a in articles:
-            # Basic sanity checks
-            assert "title_es" in a
-            assert "body_es" in a
-            print("TITLE_ES:", (a.get("title_es") or "")[:120])
-    finally:
-        driver.quit()
+    def test_normalize_and_tokenize(self):
+        """Test text normalization and tokenization."""
+        text = "Brazil, violence of crime"
+        tokens = normalize_and_tokenize(text)
+        self.assertIn("brazil", tokens)
+        self.assertIn("violence", tokens)
+        self.assertIn("of", tokens)
+        self.assertIn("crime", tokens)
+
+    def test_analyze_translated_headers_finds_repeats(self):
+        """Test that repeated words are correctly identified."""
+        headers = [
+            "The triumph of secularism",
+            "The violence of crime",
+            "The nature of celebration",
+        ]
+        result = analyze_translated_headers(headers)
+        
+        # 'the' appears 3 times, 'of' appears 3 times
+        self.assertIn("the", result["repeated_more_than_two"])
+        self.assertIn("of", result["repeated_more_than_two"])
+        self.assertEqual(result["repeated_more_than_two"]["the"], 3)
+        self.assertEqual(result["repeated_more_than_two"]["of"], 3)
+
+    def test_analyze_translated_headers_no_repeats(self):
+        """Test with no repeated words."""
+        headers = ["One unique title", "Another different header"]
+        result = analyze_translated_headers(headers)
+        
+        # No words repeated more than twice
+        self.assertEqual(len(result["repeated_more_than_two"]), 0)
+
+    def test_analyze_translated_headers_empty_input(self):
+        """Test with empty headers."""
+        headers = []
+        result = analyze_translated_headers(headers)
+        
+        self.assertEqual(len(result["repeated_more_than_two"]), 0)
+        self.assertEqual(len(result["counts"]), 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

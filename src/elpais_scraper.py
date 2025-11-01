@@ -32,6 +32,7 @@ def setup_local_driver(headless: bool = True) -> webdriver.Chrome:
     driver.set_window_size(1200, 900)
     return driver
 
+
 def scrape_first_n_opinion_articles(driver: webdriver.Chrome, n: int = 5) -> List[dict]:
     """Scrape first n articles from El País Opinion section."""
     opinion_url = "https://elpais.com/opinion/"
