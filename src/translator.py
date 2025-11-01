@@ -2,22 +2,25 @@ import os
 import requests
 from typing import List
 
-RAPID_API_KEY = os.getenv("RAPID_API_KEY")
-RAPID_API_HOST = os.getenv("RAPID_API_HOST")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
+
+print(f"DEBUG: API Key: {RAPIDAPI_KEY[:10] + '...' if RAPIDAPI_KEY else 'NOT FOUND'}")
+print(f"DEBUG: API Host: {RAPIDAPI_HOST if RAPIDAPI_HOST else 'NOT FOUND'}")
 
 
 def translate_with_rapidapi_single(
     text: str, from_lang: str = "es", to_lang: str = "en"
 ) -> str:
-    if not RAPID_API_KEY or not RAPID_API_HOST:
+    if not RAPIDAPI_KEY or not RAPIDAPI_HOST:
         raise RuntimeError("Set the environment variables!")
 
-    url = f"https://{RAPID_API_HOST}/translate"
+    url = f"https://{RAPIDAPI_HOST}/translate"
     payload = {"from": from_lang, "to": to_lang, "q": text}
     headers = {
         "content-type": "application/json",
-        "x-rapidapi-key": RAPID_API_KEY,
-        "x-rapidapi-host": RAPID_API_HOST,
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": RAPIDAPI_HOST,
     }
     resp = requests.post(url, json=payload, headers=headers, timeout=20)
     resp.raise_for_status()
@@ -45,7 +48,6 @@ def translate_with_rapidapi_single(
                     return d["translations"][0]["translatedText"]
         if isinstance(data.get("text"), str):
             return data.get("text")
-    # fallback: return raw json as string
     return str(data)
 
 
