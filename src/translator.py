@@ -5,17 +5,13 @@ from typing import List
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
 
-print(f"DEBUG: API Key: {RAPIDAPI_KEY[:10] + '...' if RAPIDAPI_KEY else 'NOT FOUND'}")
-print(f"DEBUG: API Host: {RAPIDAPI_HOST if RAPIDAPI_HOST else 'NOT FOUND'}")
-
-
 def translate_with_rapidapi_single(
     text: str, from_lang: str = "es", to_lang: str = "en"
 ) -> str:
     if not RAPIDAPI_KEY or not RAPIDAPI_HOST:
         raise RuntimeError("Set the environment variables!")
 
-    url = f"https://{RAPIDAPI_HOST}/translate"
+    url = f"https://{RAPIDAPI_HOST}/t"
     payload = {"from": from_lang, "to": to_lang, "q": text}
     headers = {
         "content-type": "application/json",
@@ -23,6 +19,7 @@ def translate_with_rapidapi_single(
         "x-rapidapi-host": RAPIDAPI_HOST,
     }
     resp = requests.post(url, json=payload, headers=headers, timeout=20)
+    
     resp.raise_for_status()
     data = resp.json()
 
