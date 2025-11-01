@@ -23,6 +23,9 @@ def translate_with_rapidapi_single(
     resp.raise_for_status()
     data = resp.json()
 
+    if isinstance(data, list) and len(data) > 0:
+        return str(data[0])
+
     # Try common response shapes
     if isinstance(data, dict):
         for k in (
